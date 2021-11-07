@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/jbp245/coffee_shop/data"
 )
 
 type Products struct {
