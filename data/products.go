@@ -33,7 +33,7 @@ func GetProducts() Products {
 	return productList
 }
 
-func addProduct(p *Product) {
+func AddProduct(p *Product) {
 	p.ID = getNextID()
 	productList = append(productList, p)
 }
