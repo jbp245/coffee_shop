@@ -1,29 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"D:\coffee\handlers"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
+	l := log.New(os.Stdout, "product-api", log.LstdFlags)
+	hh := handlers.NewHello()
 
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		d, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(rw, "Bad Request", http.StatusBadRequest)
-			return
-		}
-
-		fmt.Fprintf(rw, "Response Body: %s\n", d)
-	})
-
-	http.HandleFunc("/goodbye", func(rw http.ResponseWriter, r *http.Request) {
-		log.Println("Goodbye World")
-	})
+	sm := http.NewServeMux()
+	sm.Handle("/", hh)
 
 	// webserver on port 8080, using default handler
-	http.ListenAndServe(":8000", nil)
-
+	http.ListenAndServe(":8000", sm)
 }
