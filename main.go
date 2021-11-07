@@ -1,19 +1,52 @@
 package main
 
 import (
-	"D:\coffee\handlers"
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/jbp245/coffee_shop/handlers"
 )
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	hh := handlers.NewHello()
+	hh := handlers.NewHello(l)
+	gh := handlers.NewGoodbye(l)
 
 	sm := http.NewServeMux()
 	sm.Handle("/", hh)
+	sm.Handle("/goodbye", gh)
 
-	// webserver on port 8080, using default handler
-	http.ListenAndServe(":8000", sm)
+	s := &http.Server{
+		Addr:         ":8000",
+		Handler:      sm,
+		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
+	}
+
+	go func() {
+		err := s.ListenAndServe()
+		if err != nil {
+			l.Fatal(err)
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	sig := <-sigChan
+	l.Println("Recieved terminate, graceful shutdown", sig)
+
+	s.ListenAndServe()
+
+	tc, err := context.WithTimeout(context.Background(), 30*time.Second)
+	if err != nil {
+		l.Fatal(err)
+	}
+	s.Shutdown(tc)
 }
