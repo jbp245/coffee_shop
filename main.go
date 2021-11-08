@@ -9,19 +9,27 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/jbp245/coffee_shop/handlers"
 )
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	hh := handlers.NewHello(l)
-	gh := handlers.NewGoodbye(l)
+
 	ph := handlers.NewProducts(l)
 
-	sm := http.NewServeMux()
-	sm.Handle("/", ph)
-	sm.Handle("/hello", hh)
-	sm.Handle("/goodbye", gh)
+	sm := mux.NewRouter()
+
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/", ph.GetProducts)
+
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
+	putRouter.Use(ph.MiddlewareProductValidation)
+
+	addRouter := sm.Methods(http.MethodPost).Subrouter()
+	addRouter.HandleFunc("/", ph.UpdateProducts)
+	addRouter.Use(ph.MiddlewareProductValidation)
 
 	s := &http.Server{
 		Addr:         ":8000",
