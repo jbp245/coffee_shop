@@ -44,7 +44,7 @@ func getNextID() int {
 	return lp.ID + 1
 }
 
-func updateProduct(id int, p *Product) error {
+func UpdateProduct(id int, p *Product) error {
 	_, pos, err := findProduct(id)
 	if err != nil {
 		return err
